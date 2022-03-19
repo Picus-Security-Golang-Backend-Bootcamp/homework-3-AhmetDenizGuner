@@ -13,7 +13,6 @@ type Book struct {
 	ISBNnum     string
 	PageNum     int
 	StockNumber int //Stock Quantity
-	IsDeleted   bool
 	Price       float64
 	AuthorID    uint
 	//AuthorName  string `gorm:"type:varchar(100);column:AuthorName"`
@@ -28,7 +27,6 @@ func NewBook(pageNum, stockNumber int, price float64, bookName, stockCode, isbn_
 		ISBNnum:     isbn_num,
 		PageNum:     pageNum,
 		StockNumber: stockNumber,
-		IsDeleted:   false,
 		Price:       price,
 		AuthorID:    authorID,
 	}
@@ -50,7 +48,7 @@ func (b *Book) Buy(count int) error {
 	return nil
 }
 
-type Deletable interface {
+/*type Deletable interface {
 	Delete() (string, error)
 }
 
@@ -66,4 +64,4 @@ func (b *Book) Delete() (string, error) {
 	b.IsDeleted = true
 
 	return b.Name + " Basariyla silindi", nil
-}
+}*/
