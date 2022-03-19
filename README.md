@@ -2,7 +2,7 @@
 
 ## About the project
 
-This application provides two featured library appliation from command line. This app take 4 commands such as **list** , **search**, **buy** and **delete**.
+This application provides two featured library appliation from command line. This app take 6 commands such as **list** , **search**, **buy**, **delete**, **add** and **update**.
 
 **List:** This command prints all books in the system.
 ```bash
@@ -29,6 +29,20 @@ foo@bar:~$ _
 ```bash
 foo@bar:~$ go run main.go delete 5
 Little Prince Basariyla silindi
+foo@bar:~$ _
+```
+
+**Add:** Takes 7 paramteres with comma between them. It adds database the book.
+```bash
+foo@bar:~$ go run main.go add Kitap Adi,Yazar Adi, ISBN, Stock Code, Stock Quantity, Page Number, Price
+Kitap basariyla eklendi!!!
+foo@bar:~$ _
+```
+
+**Update:** Takes 2 paramteres. First one is book ID , second one is increase amount of stock quantity. This command increase stock quantity of book.
+```bash
+foo@bar:~$ go run main.go update 3 5
+Harry Potter 5 tane artırıldi.
 foo@bar:~$ _
 ```
 
