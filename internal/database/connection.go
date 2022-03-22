@@ -16,6 +16,7 @@ import (
 
 var DB *gorm.DB
 
+//Connect create database connection with given parameters
 func Connect() {
 	dsn := "host=localhost user=postgres password=root dbname=library port=5432" //sslmode=disable TimeZone=Asia/Shanghai
 	connection, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
@@ -38,14 +39,17 @@ func Connect() {
 	//connection.AutoMigrate(&models.User{})
 }
 
+// InitiliazeDatabase is ececuted 1 times if there is no tables and data in DB, it reads csv files and insert initial data
 func InitiliazeDatabase() error {
 
 	dbExist := DB.Migrator().HasTable(&models.Book{})
 
+	//chech DB is already exist
 	if !dbExist {
 		DB.AutoMigrate(&models.Book{})
 		DB.AutoMigrate(&models.Author{})
 
+		// read CSV
 		authorSlice, err := csv_helper.ReadCsv("../resources/author.csv", 1)
 
 		if err != nil {
@@ -53,6 +57,7 @@ func InitiliazeDatabase() error {
 			return errors.New("CSV cannot be read!")
 		}
 
+		//create author data
 		var authorData []models.Author
 		for _, author := range authorSlice {
 
@@ -60,13 +65,13 @@ func InitiliazeDatabase() error {
 
 			authorData = append(authorData, *newAuthor)
 
-			//DB.Where(models.Book{Name: newAuthor.Name}).Attrs(models.Author{Name: newAuthor.Name}).FirstOrCreate(&newAuthor)
-
 		}
 
+		// add author data
 		authorRepo := author_repository.NewAuthorRepository(DB)
 		authorRepo.InsertInitialData(authorData)
 
+		//read book csv
 		bookSlice, err := csv_helper.ReadCsv("../resources/book.csv", 1)
 
 		if err != nil {
@@ -74,6 +79,7 @@ func InitiliazeDatabase() error {
 			return errors.New("CSV cannot be read!")
 		}
 
+		//create book data
 		var bookData []models.Book
 
 		for _, book := range bookSlice {
@@ -86,10 +92,9 @@ func InitiliazeDatabase() error {
 
 			bookData = append(bookData, *newBook)
 
-			//DB.Where(models.Book{Name: newBook.Name}).Attrs(models.Book{Name: newBook.Name, StockCode: newBook.StockCode, ISBNnum: newBook.ISBNnum, PageNum: newBook.PageNum, StockNumber: newBook.StockNumber, Price: newBook.Price, AuthorID: newBook.AuthorID}).FirstOrCreate(&newBook)
-
 		}
 
+		//insert book data
 		bookRepo := book_repository.NewBookRepository(DB)
 		bookRepo.InsertInitialData(bookData)
 

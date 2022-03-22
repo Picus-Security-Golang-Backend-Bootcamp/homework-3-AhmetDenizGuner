@@ -34,6 +34,7 @@ func (r *AuthorRepository) FindAllByKey(key string) ([]models.Author, error) {
 	return authors, nil
 }
 
+//get author name by author id
 func (r *AuthorRepository) FindAuthorNameByID(id int) string {
 	var author models.Author
 	r.db.Where("ID = ?", id).Find(&author)

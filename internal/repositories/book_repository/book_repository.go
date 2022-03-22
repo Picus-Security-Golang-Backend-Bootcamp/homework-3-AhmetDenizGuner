@@ -34,6 +34,7 @@ func (r *BookRepository) InsertInitialData(books []models.Book) {
 	}
 }
 
+//search book that contains searched key in stock code, isbn and book name column
 func (r *BookRepository) FindAllByKey(key string) ([]models.Book, error) {
 	var books []models.Book
 	result := r.db.Table("table_book").Where("Name ILIKE ?", "%"+key+"%").Or("isb_nnum ILIKE ?", "%"+key+"%").Or("stock_code ILIKE ?", "%"+key+"%").Find(&books)
