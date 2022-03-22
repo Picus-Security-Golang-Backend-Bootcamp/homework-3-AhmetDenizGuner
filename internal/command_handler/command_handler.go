@@ -2,7 +2,6 @@ package command_handler
 
 import (
 	"fmt"
-	"reflect"
 	"strconv"
 	"strings"
 
@@ -46,7 +45,7 @@ func Search(args []string) {
 
 	//Searching string in book list
 	//Search method use strings contains method and seek any match in book list and return the all matches
-	resultMap, err := search_helper.Search(args[2:], authorRepository, bookRepository)
+	books, err := search_helper.Search(args[2:], authorRepository, bookRepository)
 
 	//if resultSlices is empty Serach method will be return error message and program terminated
 	if err != nil {
@@ -54,13 +53,10 @@ func Search(args []string) {
 		return
 	}
 
-	keys := reflect.ValueOf(resultMap).MapKeys()
-
-	for _, authorName := range keys {
-		for _, book := range resultMap[authorName.String()] {
-			fmt.Printf("BookID: %d , Name: %s,  Price: %.2f, ISBN: %s, Stock Code: %s, Stock Num: %d Author Name: %s\n", book.ID, book.Name, book.Price, book.ISBNnum, book.StockCode, book.StockNumber, authorName)
-		}
+	for _, book := range books {
+		fmt.Printf("BookID: %d , Name: %s,  Price: %.2f, ISBN: %s, Stock Code: %s, Stock Num: %d Author Name: %s\n", book.ID, book.Name, book.Price, book.ISBN, book.StockCode, book.StockQuantity, book.Author.Name)
 	}
+
 }
 
 func Buy(args []string) {
@@ -165,7 +161,7 @@ func Update(args []string) {
 		return
 	}
 
-	book.StockNumber += increaseCount
+	book.StockQuantity += increaseCount
 
 	err4 := bookRepository.Update(book)
 
@@ -246,6 +242,6 @@ func Add(args []string) {
 //this function print the list that given
 func bookPrinter(books []model.Book) {
 	for index, book := range books {
-		fmt.Printf("%d) BookID: , Name: %s,  Price: %.2f, ISBN: %s, Stock Code: %s, Stock Num: %d\n", index+1, book.Name, book.Price, book.ISBNnum, book.StockCode, book.StockNumber)
+		fmt.Printf("%d) BookID: %d, Name: %s,  Price: %.2f, ISBN: %s, Stock Code: %s, Stock Num: %d\n", index+1, book.ID, book.Name, book.Price, book.ISBN, book.StockCode, book.StockQuantity)
 	}
 }

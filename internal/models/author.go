@@ -4,14 +4,11 @@ import "gorm.io/gorm"
 
 type Author struct {
 	gorm.Model
-	Name  string
-	Books []Book `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	//`gorm:"foreignKey:AuthorName;references:Name"`
+	Name string
 }
 
-//struct constructor
+//NewAuthor is struct constructor of Author model
 func NewAuthor(authorName string) *Author {
-
 	author := &Author{
 		Name: authorName,
 	}

@@ -22,25 +22,6 @@ func (r *AuthorRepository) InsertInitialData(books []models.Author) {
 	}
 }
 
-func (r *AuthorRepository) FindAllByKey(key string) ([]models.Author, error) {
-	var authors []models.Author
-
-	result := r.db.Preload("Books").Where("Name ILIKE ?", "%"+key+"%").Find(&authors)
-
-	if result.Error != nil {
-		return nil, result.Error
-	}
-
-	return authors, nil
-}
-
-//get author name by author id
-func (r *AuthorRepository) FindAuthorNameByID(id int) string {
-	var author models.Author
-	r.db.Where("ID = ?", id).Find(&author)
-	return author.Name
-}
-
 func (r *AuthorRepository) FindByName(name string) (models.Author, error) {
 	var author models.Author
 	result := r.db.Where("Name = ?", name).Find(&author)
