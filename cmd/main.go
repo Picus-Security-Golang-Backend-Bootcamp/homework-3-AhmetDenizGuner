@@ -5,13 +5,11 @@ import (
 	"os"
 	"path/filepath"
 
-	//data "github.com/Picus-Security-Golang-Backend-Bootcamp/homework-3-AhmetDenizGuner/data"
 	"github.com/Picus-Security-Golang-Backend-Bootcamp/homework-3-AhmetDenizGuner/internal/command_handler"
 	"github.com/Picus-Security-Golang-Backend-Bootcamp/homework-3-AhmetDenizGuner/internal/database"
-	model "github.com/Picus-Security-Golang-Backend-Bootcamp/homework-3-AhmetDenizGuner/internal/models"
+	"github.com/Picus-Security-Golang-Backend-Bootcamp/homework-3-AhmetDenizGuner/internal/repositories/author_repository"
+	"github.com/Picus-Security-Golang-Backend-Bootcamp/homework-3-AhmetDenizGuner/internal/repositories/book_repository"
 )
-
-var bookSlice []model.Book = []model.Book{}
 
 func init() {
 	database.Connect()
@@ -33,6 +31,11 @@ func main() {
 		printDefaultErrorMessage(args[0])
 		return
 	}
+
+	bookRepository := book_repository.NewBookRepository(database.DB)
+	authorRepository := author_repository.NewAuthorRepository(database.DB)
+
+	command_handler.ConstructCommandHandler(bookRepository, authorRepository)
 
 	switch args[1] {
 	case "list":

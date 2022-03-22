@@ -15,7 +15,7 @@ func NewBookRepository(db *gorm.DB) *BookRepository {
 	}
 }
 
-func (r *BookRepository) GetAllBooks() ([]models.Book, error) {
+func (r *BookRepository) FindAll() ([]models.Book, error) {
 	var books []models.Book
 
 	result := r.db.Find(&books)
@@ -45,12 +45,6 @@ func (r *BookRepository) FindAllByKey(key string) ([]models.Book, error) {
 	return books, nil
 }
 
-func (r *BookRepository) GetBookRecordCount() int {
-	var count int
-	r.db.Raw("SELECT COUNT(*) FROM table_book").Scan(count)
-	return count
-}
-
 func (r *BookRepository) DeleteById(id int) error {
 	result := r.db.Delete(&models.Book{}, id)
 
@@ -61,7 +55,7 @@ func (r *BookRepository) DeleteById(id int) error {
 	return nil
 }
 
-func (r *BookRepository) GetById(id int) (models.Book, error) {
+func (r *BookRepository) FindById(id int) (models.Book, error) {
 	var book models.Book
 	result := r.db.First(&book, id)
 	if result.Error != nil {

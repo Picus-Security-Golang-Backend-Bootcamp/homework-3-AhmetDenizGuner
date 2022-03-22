@@ -6,18 +6,24 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Picus-Security-Golang-Backend-Bootcamp/homework-3-AhmetDenizGuner/internal/database"
 	model "github.com/Picus-Security-Golang-Backend-Bootcamp/homework-3-AhmetDenizGuner/internal/models"
 	"github.com/Picus-Security-Golang-Backend-Bootcamp/homework-3-AhmetDenizGuner/internal/repositories/author_repository"
 	"github.com/Picus-Security-Golang-Backend-Bootcamp/homework-3-AhmetDenizGuner/internal/repositories/book_repository"
 	"github.com/Picus-Security-Golang-Backend-Bootcamp/homework-3-AhmetDenizGuner/internal/search_helper"
 )
 
+var bookRepository book_repository.BookRepository
+var authorRepository author_repository.AuthorRepository
+
+func ConstructCommandHandler(bookRepository_ *book_repository.BookRepository, authorRepository_ *author_repository.AuthorRepository) {
+	bookRepository = *bookRepository_
+	authorRepository = *authorRepository_
+}
+
 func List(args []string) {
 	if len(args) == 2 {
 
-		bookRepo := book_repository.NewBookRepository(database.DB)
-		bookSlice, err := bookRepo.GetAllBooks()
+		bookSlice, err := bookRepository.FindAll()
 
 		if err != nil {
 			fmt.Println(err)
@@ -40,7 +46,7 @@ func Search(args []string) {
 
 	//Searching string in book list
 	//Search method use strings contains method and seek any match in book list and return the all matches
-	resultMap, err := search_helper.Search(args[2:])
+	resultMap, err := search_helper.Search(args[2:], authorRepository, bookRepository)
 
 	//if resultSlices is empty Serach method will be return error message and program terminated
 	if err != nil {
@@ -68,13 +74,12 @@ func Buy(args []string) {
 	orderCount, err2 := strconv.Atoi(args[3])
 
 	//check arguments are integers
-	if err1 != nil || err2 != nil {
-		fmt.Println("Lutfen arguman degerlerini tam sayi giriniz!")
+	if err1 != nil || err2 != nil || orderCount <= 0 {
+		fmt.Println("Lutfen arguman degerlerini pozitif tam sayi giriniz!")
 		return
 	}
 
-	bookRepo := book_repository.NewBookRepository(database.DB)
-	book, err := bookRepo.GetById(bookId)
+	book, err := bookRepository.FindById(bookId)
 
 	if err != nil {
 		fmt.Println(err)
@@ -89,7 +94,7 @@ func Buy(args []string) {
 		return
 	}
 
-	err4 := bookRepo.Update(book)
+	err4 := bookRepository.Update(book)
 
 	if err4 != nil {
 		fmt.Println(err4)
@@ -116,8 +121,7 @@ func Delete(args []string) {
 	}
 
 	//check book id added at the begginig
-	bookRepo := book_repository.NewBookRepository(database.DB)
-	book, err := bookRepo.GetById(bookId)
+	book, err := bookRepository.FindById(bookId)
 
 	if err != nil {
 		fmt.Println(err)
@@ -125,7 +129,7 @@ func Delete(args []string) {
 		return
 	}
 
-	err2 := bookRepo.DeleteById(int(book.ID))
+	err2 := bookRepository.DeleteById(int(book.ID))
 
 	if err != nil {
 		fmt.Println(err2)
@@ -135,6 +139,7 @@ func Delete(args []string) {
 	fmt.Println("Kitap basariyla silindi")
 }
 
+//Update function increase the book amount as given argument
 func Update(args []string) {
 	//check argument count is ok
 	if len(args) != 4 {
@@ -146,14 +151,13 @@ func Update(args []string) {
 	increaseCount, err2 := strconv.Atoi(args[3])
 
 	//check arguments are integers
-	if err1 != nil || err2 != nil {
-		fmt.Println("Lutfen arguman degerlerini tam sayi giriniz!")
+	if err1 != nil || err2 != nil || increaseCount <= 0 {
+		fmt.Println("Lutfen arguman degerlerini pozitif tam sayi giriniz!")
 		return
 	}
 
 	//check book id added at the begginig
-	bookRepo := book_repository.NewBookRepository(database.DB)
-	book, err := bookRepo.GetById(bookId)
+	book, err := bookRepository.FindById(bookId)
 
 	if err != nil {
 		fmt.Println(err)
@@ -163,7 +167,7 @@ func Update(args []string) {
 
 	book.StockNumber += increaseCount
 
-	err4 := bookRepo.Update(book)
+	err4 := bookRepository.Update(book)
 
 	if err4 != nil {
 		fmt.Println(err4)
@@ -182,14 +186,17 @@ func Add(args []string) {
 		fmt.Println("go run main.go add Kitap Adi,Yazar Adi, ISBN, Stock Code, Stock Quantity, Page Number, Price")
 	}
 
+	//prepare arguments list
 	input := strings.TrimSpace(strings.Join(args[2:], ""))
 	arguments := strings.Split(input, ",")
 
+	//check argument count
 	if len(arguments) != 7 {
 		fmt.Println("Add icin lutfen argumanlari asagidaki gibi giriniz")
 		fmt.Println("go run main.go add Kitap Adi,Yazar Adi, ISBN, Stock Code, Stock Quantity, Page Number, Price")
 	}
 
+	//check numeric arguments are ok
 	stockQuantity, err := strconv.Atoi(arguments[4])
 	pageNumber, err2 := strconv.Atoi(arguments[5])
 	price, err3 := strconv.ParseFloat(arguments[6], 64)
@@ -200,31 +207,32 @@ func Add(args []string) {
 		return
 	}
 
-	authorRepo := author_repository.NewAuthorRepository(database.DB)
-	author, err4 := authorRepo.FindByName(arguments[1])
+	//check author is exist, if it isn't create new author , if there is get ID
+	author, err4 := authorRepository.FindByName(arguments[1])
 
 	if err4 != nil {
 		author.Name = arguments[1]
-		err := authorRepo.Create(author)
+		err := authorRepository.Create(author)
 
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
-		author, _ = authorRepo.FindByName(arguments[1])
+		author, _ = authorRepository.FindByName(arguments[1])
 	}
 
-	bookRepo := book_repository.NewBookRepository(database.DB)
-	_, err5 := bookRepo.FindByName(arguments[0])
+	//check there is book with same name, if it is return error
+	_, err5 := bookRepository.FindByName(arguments[0])
 
 	if err5 != nil {
 		fmt.Println("Eklemeye calistiginiz kitap zaten var!!")
 		return
 	}
 
+	//add new book
 	book := model.NewBook(pageNumber, stockQuantity, price, arguments[0], arguments[2], arguments[1], author.ID)
 
-	err6 := bookRepo.Create(*book)
+	err6 := bookRepository.Create(*book)
 
 	if err6 != nil {
 		fmt.Println(err6)

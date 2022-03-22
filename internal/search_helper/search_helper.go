@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/Picus-Security-Golang-Backend-Bootcamp/homework-3-AhmetDenizGuner/internal/database"
 	"github.com/Picus-Security-Golang-Backend-Bootcamp/homework-3-AhmetDenizGuner/internal/models"
 	model "github.com/Picus-Security-Golang-Backend-Bootcamp/homework-3-AhmetDenizGuner/internal/models"
 	"github.com/Picus-Security-Golang-Backend-Bootcamp/homework-3-AhmetDenizGuner/internal/repositories/author_repository"
@@ -14,7 +13,7 @@ import (
 )
 
 //this method search the matches between the given string and bookList element, and return the matches list
-func Search(searchItems []string) (map[string][]models.Book, error) {
+func Search(searchItems []string, authorRepository author_repository.AuthorRepository, bookRepository book_repository.BookRepository) (map[string][]models.Book, error) {
 
 	//creating search string using by program arguments
 	//BuildSearchItem method get arguments and return the string these arguments
@@ -26,25 +25,27 @@ func Search(searchItems []string) (map[string][]models.Book, error) {
 		return nil, err
 	}
 
-	authorRepo := author_repository.NewAuthorRepository(database.DB)
-	authorSlice, err := authorRepo.FindAllByKey(searchItem)
+	//search key item in author names
+	authorSlice, err := authorRepository.FindAllByKey(searchItem)
 
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(0)
 	}
 
-	bookRepo := book_repository.NewBookRepository(database.DB)
-	bookSlice, err := bookRepo.FindAllByKey(searchItem)
+	////search key item in books information
+	bookSlice, err := bookRepository.FindAllByKey(searchItem)
 
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(0)
 	}
 
+	//to compresion and merging two results of key in book and author info
 	var resultMap = map[string][]models.Book{}
 	bookIDs := []int{}
 
+	//add book info to result map
 	for _, author := range authorSlice {
 		for _, book := range author.Books {
 			if _, ok := resultMap[author.Name]; ok {
@@ -58,8 +59,9 @@ func Search(searchItems []string) (map[string][]models.Book, error) {
 		}
 	}
 
+	//compare is there any duplicate book , if there is not, add result map
 	for _, book := range bookSlice {
-		authorName := authorRepo.FindAuthorNameByID(int(book.AuthorID))
+		authorName := authorRepository.FindAuthorNameByID(int(book.AuthorID))
 		if _, ok := resultMap[authorName]; ok {
 			if !contains(bookIDs, int(book.ID)) {
 				resultMap[authorName] = append(resultMap[authorName], book)
